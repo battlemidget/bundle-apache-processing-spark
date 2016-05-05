@@ -1,17 +1,17 @@
-# Apache Hadoop with Spark
+# Apache Spark
 
-This bundle provides a complete deployment of the core components of the
-[Apache Hadoop 2.7.1](http://hadoop.apache.org/docs/r2.7.1/)
-platform to along with [Apache Spark 1.6.1](https://spark.apache.org/).
+This bundle provides a complete deployment of the processing components using
+[Apache Spark 1.6.1](https://spark.apache.org/) in standalone HA mode.
 These components include:
 
-  * NameNode (HDFS)
-  * ResourceManager (Yarn)
-  * Slaves (DataNode and NodeManager)
-  * Spark
-    - Plugin (colocated with Spark)
+  * Spark (3 units)
+  * Zookeeper (3 units)
 
-Deploying this bundle gives you a fully configured and connected Apache Hadoop
+In addition to monitoring facilities offered by Spark (the job history server)
+this bundle pairs Spark with an ELK stack (Elasticsearch-Logstash-Kibana)
+in order to analyse Spark logs.
+
+Deploying this bundle gives you a fully configured and connected Apache Spark
 cluster on any supported cloud, which can be easily scaled to meet workload
 demands.
 
@@ -26,12 +26,11 @@ units. To deploy this bundle, simply use:
 See `juju quickstart --help` for deployment options, including machine
 constraints and how to deploy a locally modified version of `bundle.yaml`.
 
-The default bundle deploys three slave nodes and one node of each of
-the other services. To scale the cluster, use:
+The default bundle deploys three Spark nodes. To scale the cluster, use:
 
-    juju add-unit slave -n 2
+    juju add-unit spark -n 2
 
-This will add two additional slave nodes, for a total of five.
+This will add two additional Spark nodes, for a total of five.
 
 
 ### Verify the deployment
@@ -45,22 +44,22 @@ progress of the deployment:
 
     watch -n 0.5 juju status --format=tabular
 
-The charms for each master component (namenode, resourcemanager, spark)
-also each provide a `smoke-test` action that can be used to verify that each
-component is functioning as expected.  You can run them all and then watch the
-action status list:
+The Spark charm provides a `smoke-test` action that can be used to verify that
+it functions as expected:
 
-    juju action do namenode/0 smoke-test
-    juju action do resourcemanager/0 smoke-test
     juju action do spark/0 smoke-test
     watch -n 0.5 juju action status
 
-Eventually, all of the actions should settle to `status: completed`.  If
-any go instead to `status: failed` then it means that component is not working
-as expected.  You can get more information about that component's smoke test:
+Eventually, the action should settle to `status: completed`.  If not
+then it means that component is not working as expected.
+You can get more information about that component's smoke test:
 
     juju action fetch <action-id>
 
+Using Spark job history server you can inspect the status of the curently running jobs
+as well as the ones finished. The Spark and system logs of the Spark nodes are collected
+and indexed at the Elasticsearch node. By navigatng to http://<kibana-host> you gain
+access to the log analysis facilities of this bundle.
 
 ## Contact Information
 
